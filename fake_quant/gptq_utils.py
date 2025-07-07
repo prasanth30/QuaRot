@@ -184,7 +184,12 @@ def gptq_fwrd(model, dataloader, dev, args):
     outs = torch.zeros_like(inps)
     attention_mask = cache['attention_mask']
     position_ids = cache['position_ids']
-
+    # position_ids = torch.arange(model.seqlen, device=dev).unsqueeze(0)
+    if position_ids is not None:
+        print(position_ids.shape)
+    else:
+        position_ids = torch.arange(model.seqlen, device=dev).unsqueeze(0)
+        
     quantizers = {}
     sequential = [
                 ['self_attn.k_proj.module', 'self_attn.v_proj.module', 'self_attn.q_proj.module'],
@@ -224,9 +229,10 @@ def gptq_fwrd(model, dataloader, dev, args):
                 handles.append(subset[name].register_forward_hook(add_batch(name)))
             for j in range(args.nsamples):
                 # if position_ids is None:
-                outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask)[0]
+                # outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask)[0]
                 # else:
-                    # outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask, position_ids=position_ids)[0]
+                
+                outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask, position_ids=position_ids)[0]
                 
             for h in handles:
                 h.remove()
@@ -241,10 +247,10 @@ def gptq_fwrd(model, dataloader, dev, args):
 
         for j in range(args.nsamples):
             # if position_ids is None:
-            outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask)[0]
+            # outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask)[0]
             # else:
                 # outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask, position_ids=position_ids)[0]
-            # outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask, position_ids=position_ids)[0]
+            outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask, position_ids=position_ids)[0]
 
         layers[i] = layer.cpu()
         del layer
