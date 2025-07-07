@@ -242,12 +242,24 @@ def rotate_model(model, args):
     utils.cleanup_memory()
     layers = model_utils.get_transformer_layers(model, 
                                                 model_type=model_type)
-    for idx, layer in enumerate(tqdm.tqdm(layers, unit="layer", desc="Rotating")):
-        rotate_attention_inputs(layers[idx], Q, model_type)
-        rotate_attention_output(layers[idx], Q, model_type)
-        rotate_mlp_input(layers[idx], Q, model_type)
-        rotate_mlp_output(layers[idx], Q, model_type)
-        rotate_ov_proj(layers[idx], model_type, num_heads, head_dim)
+    # for idx, layer in enumerate(tqdm.tqdm(layers, unit="layer", desc="Rotating")):
+    #     rotate_attention_inputs(layers[idx], Q, model_type)
+    #     rotate_attention_output(layers[idx], Q, model_type)
+    #     rotate_mlp_input(layers[idx], Q, model_type)
+    #     rotate_mlp_output(layers[idx], Q, model_type)
+    #     rotate_ov_proj(layers[idx], model_type, num_heads, head_dim)
+    from concurrent.futures import ThreadPoolExecutor
+    
+    def rotate_layer(layer):
+        rotate_attention_inputs(layer, Q, model_type)
+        rotate_attention_output(layer, Q, model_type)
+        rotate_mlp_input(layer, Q, model_type)
+        rotate_mlp_output(layer, Q, model_type)
+        rotate_ov_proj(layer, model_type, num_heads, head_dim)
+        
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        list(tqdm.tqdm(executor.map(rotate_layer, layers), total=len(layers)))
+
 
 
 @torch.inference_mode
