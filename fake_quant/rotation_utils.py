@@ -242,7 +242,7 @@ def rotate_model(model, args):
     utils.cleanup_memory()
     layers = model_utils.get_transformer_layers(model, 
                                                 model_type=model_type)
-    for idx, layer in enumerate(tqdm.tqdm(layers, unit="layer", desc="Rotating")):
+    for idx, layer in enumerate(tqdm.auto.tqdm(layers, unit="layer", desc="Rotating")):
         rotate_attention_inputs(layers[idx], Q, model_type)
         rotate_attention_output(layers[idx], Q, model_type)
         rotate_mlp_input(layers[idx], Q, model_type)
