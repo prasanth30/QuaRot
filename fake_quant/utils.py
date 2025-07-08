@@ -191,10 +191,16 @@ def parser_gen():
     if args.lm_eval:
         from lm_eval import tasks
         from lm_eval import utils as lm_eval_utils
-        from lm_eval.tasks import initialize_tasks
-        initialize_tasks()
+        # from lm_eval.tasks import initialize_tasks
+        
+        # initialize_tasks()
+        from lm_eval.tasks import TaskManager
+        task_manager = TaskManager()
+        ALL_TASKS = task_manager.all_tasks
+
         for task in args.tasks:
-            if task not in lm_eval_utils.MultiChoice(tasks.ALL_TASKS):
+            # if task not in lm_eval_utils.MultiChoice(tasks.ALL_TASKS):
+            if task not in lm_eval_utils.MultiChoice(ALL_TASKS):
                 raise ValueError(f"Invalid task: {task}")
 
     # quant_type = f'w{args.w_bits}a{args.a_bits}_{args.rotate_mode}'
