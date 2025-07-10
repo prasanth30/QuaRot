@@ -245,8 +245,8 @@ def gptq_fwrd(model, dataloader, dev, args):
                 quantizers['model.layers.%d.%s' % (i, name)] = gptq[name].quantizer
                 gptq[name].free()
             
-            print('Breaking Early to save time...')
-            break
+        print('Breaking Early to save time...')
+        break
 
         for j in range(args.nsamples):
             # if position_ids is None:
