@@ -24,8 +24,8 @@ def main():
     # Rotate the weights
     if args.rotate:
         rotation_utils.fuse_layer_norms(model)
-        # rotation_utils.rotate_model(model, args)
-        rotation_utils.rotate_model_fast(model, args)
+        rotation_utils.rotate_model(model, args)
+        # rotation_utils.rotate_model_fast(model, args)
         utils.cleanup_memory(verbos=True)
             
         quant_utils.add_actquant(model) #Add Activation Wrapper to the model
