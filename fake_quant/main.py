@@ -135,6 +135,9 @@ def main():
 
     
     dataset_ppl = eval_utils.evaluator(model, testloader, utils.DEV, args)
+
+    print('ppl/{}'.format(args.eval_dataset.upper()), ' : ', dataset_ppl)
+    
     if args.wandb:
             wandb.log({'ppl/{}'.format(args.eval_dataset.upper()): dataset_ppl})
 
