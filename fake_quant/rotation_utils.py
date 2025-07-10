@@ -249,6 +249,43 @@ def rotate_model(model, args):
         rotate_mlp_output(layers[idx], Q, model_type)
         rotate_ov_proj(layers[idx], model_type, num_heads, head_dim)
 
+import concurrent.futures
+
+@torch.inference_mode()
+def rotate_model_fast(model, args, max_workers=4):
+    """
+    Parallelized version of rotate_model using ThreadPoolExecutor.
+    Each layer rotation is performed in a separate thread.
+    """
+    Q = get_orthogonal_matrix(model.config.hidden_size, args.rotate_mode)
+    config = model.config
+    num_heads = config.num_attention_heads
+    model_dim = config.hidden_size
+    head_dim = model_dim // num_heads
+
+    model_type = model_utils.model_type_extractor(model)
+    rotate_embeddings(model, Q)
+    rotate_head(model, Q)
+    utils.cleanup_memory()
+    layers = model_utils.get_transformer_layers(model, model_type=model_type)
+
+    def rotate_layer(idx_layer_tuple):
+        idx, layer = idx_layer_tuple
+        rotate_attention_inputs(layer, Q, model_type)
+        rotate_attention_output(layer, Q, model_type)
+        rotate_mlp_input(layer, Q, model_type)
+        rotate_mlp_output(layer, Q, model_type)
+        rotate_ov_proj(layer, model_type, num_heads, head_dim)
+        return idx  # For progress tracking
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        list(tqdm.tqdm(
+            executor.map(rotate_layer, enumerate(layers)),
+            total=len(layers),
+            unit="layer",
+            desc="Rotating (fast)"
+        ))
+
 
 @torch.inference_mode
 def online_rotate(module, inp):
